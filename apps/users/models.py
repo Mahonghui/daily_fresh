@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, UserManager
 from django.conf import settings
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from db.base_model import BaseModel
@@ -22,6 +22,8 @@ class User(AbstractBaseUser, BaseModel):
     USERNAME_FIELD = 'username'
 
     REQUIRED_FIELDS = []
+
+    objects = UserManager()
 
     def generate_active_token(self):
         '''生成用户签名'''
