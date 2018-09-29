@@ -27,7 +27,7 @@ SECRET_KEY = 'h+vbih80au6sp3)7@ubowyben^@q&b&fyg1^p*f8oj1co$+9c8'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['10.6.207.167', '127.0.0.1']
 
 
 # Application definition
@@ -112,6 +112,20 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# 配置redis存储django缓存
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# 配置redis存储session
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = 'default'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
@@ -132,6 +146,7 @@ AUTH_USER_MODEL = 'users.User'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
+# 静态文件目录
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_URL = '/static/'
 
@@ -142,7 +157,6 @@ TINYMCE_DEFAULT_CONFIG = {
     'height': 400,
 }
 
-from django.core.mail.backends.smtp import EmailBackend
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.163.com'
 EMAIL_PORT = 25
@@ -153,5 +167,15 @@ EMAIL_HOST_PASSWORD = 'django2018'
 # 接收方显示的发件人
 EMAIL_FROM = '每日生鲜<amisher@163.com>'
 
+# 使用redis作为celery任务的中间人
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
 
+# 指定跳转地址
+LOGIN_URL = '/users/login'
+
+# 更改默认存储类
+DEFAULT_FILE_STORAGE = 'utils.fdfs.storage.FDFSStorage'
+
+FASTDFS_CONF = './utils/fdfs/client.conf'
+
+NGINX_URL = '127.0.0.1:8888/'
