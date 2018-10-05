@@ -1,16 +1,19 @@
 # encoding: utf-8
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from .models import User
+from .models import User, Address
+from goods.models import GoodsSKU
 from django.urls import reverse
 from django.http import HttpResponse
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
 from django.conf import settings
+from django_redis import get_redis_connection
 from celery_tasks.tasks import send_active_email
-from hashlib import md5
+from hashlib import md5 # 加密密码
 import json # 解决cookie中文乱码问题
 import re
+
 from django.contrib.auth.decorators import login_required
 # Create your views here.
 
@@ -221,8 +224,24 @@ class LogOutView(View):
 #装饰器不能用于视图类
 class UserInfoView(View):
     def get(self, request):
-        return render(request, 'user_center_info.html', {'page': 'user'})
 
+        # 获取默认地址信息
+        current_user = request.session.get('user')
+        address = Address.objects.get_default_address(current_user)
+
+        # 获取历史浏览记录
+        conn = get_redis_connection('default')
+
+        history_key = 'history_%d'%current_user.id
+        sku_list = conn.lrange(history_key, 0, 4)
+        goods_list = []
+
+        for sku in sku_list:
+            good = GoodsSKU.objects.get(id=sku)
+            goods_list.append(good)
+
+        context = {'page': 'user', 'current_user': current_user, 'address': address, 'good_history': goods_list}
+        return render(request, 'user_center_info.html', context)
 
 class UserOrderView(View):
     def get(self, request):
@@ -231,9 +250,29 @@ class UserOrderView(View):
 
 class UserSiteView(View):
     def get(self, request):
-        return render(request, 'user_center_site.html', {'page': 'site'})
+        current_user = request.session.get('user')
+        addr_set = Address.objects.filter(user=current_user)
+        return render(request, 'user_center_site.html', {'page': 'site', 'addr_set': addr_set})
 
     def post(self, request):
         '''处理编辑后的地址'''
-        pass
+        receiver = request.POST.get('receiver')
+        addr = request.POST.get('address')
+        zip_code = request.POST.get('zip_code')
+        contact = request.POST.get('contact')
+
+
+        if not all([receiver, addr, zip_code, contact]):
+            return render(request, 'user_center_site.html', {'errmsg': '信息不完整'})
+
+        address = Address()
+        address.receiver = receiver
+        address.address = addr
+        address.zip_code = zip_code
+        address.contact = contact
+        address.user = request.session.get('user')
+
+        address.save()
+        return render(request, 'user_center_site.html')
+
 
