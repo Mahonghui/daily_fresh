@@ -4,6 +4,7 @@ from django.views.generic import View
 from .models import GoodsType, IndexGoodsBanner, IndexPromotionBanner, IndexTypeDisplay, Goods, GoodsSKU
 from django_redis import get_redis_connection
 from orders.models import OrderGoods
+from django.core.paginator import Paginator
 # Create your views here.
 
 
@@ -43,6 +44,7 @@ class IndexView(View):
         }
 
         return render(request, 'index.html', context)
+
 
 
 class DetailView(View):
@@ -88,4 +90,64 @@ class DetailView(View):
         }
 
         return render(request, 'detail.html', context)
+
+
+# restful api
+# /list/type_id/page_num?sort=
+# 种类id，页码，排序方式
+class ListView(View):
+    def get(self, request, type_id, page_num):
+        try:
+            current_type = GoodsType.objects.get(id=type_id)
+        except GoodsType.DoesNotExist:
+            return redirect(reverse('goods:index'))
+
+        sort_way = request.GET.get('sort')
+        sort = 'id'
+        if sort_way == 'default':
+            sort = 'id'
+        elif sort_way == 'price':
+            sort = '-price'
+        elif sort_way == 'sales':
+            sort = 'sales'
+
+        types = GoodsType.objects.all()
+        skus = GoodsSKU.objects.filter(type=current_type).order_by(sort)
+
+        paginator = Paginator(skus, 1)
+
+        # 页码非数值
+        try:
+            page_num = int(page_num)
+        except ValueError:
+            page_num = 1
+
+        # 超出总页数
+        if page_num > paginator.num_pages:
+            page_num = 1
+
+        page = paginator.page(page_num)
+
+        new_skus = GoodsSKU.objects.filter(type=current_type).order_by('-create_time')[:2]
+
+        user = request.session.get('user', None)
+        cart_count = 0
+
+        # 获取当前用户的购物车数量
+        if user is not None:
+            conn = get_redis_connection('default')
+            cart_key = 'cart_%d'%user.id
+            cart_count = conn.hlen(cart_key)
+
+
+        context = {
+            'type': current_type,
+            'types':types,
+            'page': page,
+            'new_skus': new_skus,
+            'cart_count': cart_count,
+            'sort': sort
+        }
+
+        return render(request, 'list.html', context)
 
