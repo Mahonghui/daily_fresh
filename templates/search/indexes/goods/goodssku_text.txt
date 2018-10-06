@@ -1,0 +1,4 @@
+# 指定索引字段
+{{ object.name }} # 根据商品名称建立索引
+{{ object.desc }}
+{{ object.goods.detail }}

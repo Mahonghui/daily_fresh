@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'orders',
     'users',
     'tinymce', # 富文本编辑器
+    'haystack', # 全文检索框架
 ]
 
 MIDDLEWARE = [
@@ -112,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# 配置redis存储django缓存
+# 配置redis存储django缓存(历史浏览记录)
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -126,6 +127,7 @@ CACHES = {
 # 配置redis存储session
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = 'default'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
@@ -178,4 +180,13 @@ DEFAULT_FILE_STORAGE = 'utils.fdfs.storage.FDFSStorage'
 
 FASTDFS_CONF = './utils/fdfs/client.conf'
 
-NGINX_URL = '127.0.0.1:8888/'
+NGINX_URL = 'http://127.0.0.1:8888/'
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_cn_backend.WhooshEngine',
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+    }
+}
+
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
