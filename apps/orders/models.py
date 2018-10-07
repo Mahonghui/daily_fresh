@@ -29,7 +29,7 @@ class OrderInfo(BaseModel):
     total_count = models.IntegerField(default=1, verbose_name='订单数量')
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='总价')
     express_fee = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='运费')
-    trade_id = models.CharField(max_length=128, verbose_name='交易编号')
+    trade_id = models.CharField(max_length=128, default='', verbose_name='交易编号')
     # 定义外键
     user = models.ForeignKey('users.User', verbose_name='下单用户', on_delete=models.CASCADE)
     address = models.ForeignKey('users.Address', verbose_name='订单地址', on_delete=models.CASCADE)
@@ -44,7 +44,7 @@ class OrderGoods(BaseModel):
 
     count = models.IntegerField(default=1, verbose_name='商品数量')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='商品价格')
-    comment = models.CharField(max_length=256, verbose_name='商品评论')
+    comment = models.CharField(max_length=256, verbose_name='商品评论', default='')
     # 定义外键
     order = models.ForeignKey('OrderInfo', verbose_name='订单', on_delete=models.CASCADE)
     sku = models.ForeignKey('goods.GoodsSKU', verbose_name='商品', on_delete=models.CASCADE)
