@@ -102,30 +102,48 @@ class HandleOrderView(View):
 
             for sku_id in sku_ids:
                 # 新建订单的商品记录
-                try:
-                    sku = GoodsSKU.objects.get(id=sku_id)
-                except GoodsSKU.DoesNotExist:
-                    return JsonResponse({'status': 0, 'errmsg': '商品不存在'})
+                for i in range(3):
+                    try:
+                        # 悲观锁
+                        # sku = GoodsSKU.objects.select_for_update().get(id=sku_id)
+                        sku = GoodsSKU.objects.get(id=sku_id)
+                    except GoodsSKU.DoesNotExist:
+                        return JsonResponse({'status': 0, 'errmsg': '商品不存在'})
 
-                # 获取购物车的对应商品数量
-                good_amount = int(conn.hget(cart_key, sku_id))
+                    # 获取购物车的对应商品数量
+                    good_amount = int(conn.hget(cart_key, sku_id))
+                    # 对共享的数据上锁
+                    # 判断库存
+                    if good_amount > sku.stock:
+                        transaction.savepoint_rollback(savepoint_1)
+                        return JsonResponse({'status': 0, 'errmsg': '库存不足'})
+                    order_goods = OrderGoods()
+                    order_goods.sku = sku
+                    order_goods.order = order
+                    order_goods.count = good_amount
+                    order_goods.price = sku.price
 
-                if good_amount > sku.stock:
-                    transaction.savepoint_rollback(savepoint_1)
-                    return JsonResponse({'status': 0, 'errmsg': '库存不足'})
-                order_goods = OrderGoods()
-                order_goods.sku = sku
-                order_goods.order = order
-                order_goods.count = good_amount
-                order_goods.price = sku.price
+                    # # 更新销量和库存
+                    # sku.stock -= good_amount
+                    # sku.sales += good_amount
 
-                order_goods.save()
-                # 更新销量和库存
-                sku.stock -= good_amount
-                sku.sales += good_amount
-                # 保存订单信息的总价格和总数量
-                total_count += good_amount
-                total_price += (good_amount * sku.price)
+                    # 更新库存
+                    origin_stock = sku.stock
+                    new_stock = origin_stock - good_amount
+                    new_sales = sku.sales + good_amount
+                    # 乐观锁: 判断表中数据和上次读到的是否一致
+                    res = GoodsSKU.objects.filter(id=sku_id, stock=origin_stock).update(stock=new_stock, sales=new_sales)
+                    if res == 0:
+                        if i == 2:
+                            transaction.savepoint_rollback(savepoint_1)
+                            return JsonResponse({'status': 0, 'errmsg': '库存不足'})
+                        else:
+                            continue
+                    order_goods.save()
+                    # 保存订单信息的总价格和总数量
+                    total_count += good_amount
+                    total_price += (good_amount * sku.price)
+                    break
 
             # 替换订单的总额部分
             order = OrderInfo.objects.get(order_id=order_id)

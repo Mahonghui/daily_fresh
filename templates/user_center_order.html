@@ -3,73 +3,53 @@
 {% block right_content %}
 		<div class="right_content clearfix">
 				<h3 class="common_title2">全部订单</h3>
+			{% for order in page %}
 				<ul class="order_list_th w978 clearfix">
-					<li class="col01">2016-8-21 17:36:24</li>
-					<li class="col02">订单号：56872934</li>
-					<li class="col02 stress">未支付</li>		
+					<li class="col01">{{ order.create_time }}</li>
+					<li class="col02">订单号：{{ order.order_id  }}</li>
+					<li class="col02 stress">{{ order.status_name }}</li>
 				</ul>
-
 				<table class="order_list_table w980">
 					<tbody>
 						<tr>
 							<td width="55%">
+								{% for good in order.goods %}
 								<ul class="order_goods_list clearfix">					
-									<li class="col01"><img src="{% static 'images/goods02.jpg' %}"></li>
-									<li class="col02">嘎啦苹果嘎啦苹果<em>11.80元/500g</em></li>	
-									<li class="col03">1</li>
-									<li class="col04">11.80元</li>	
+									<li class="col01"><img src="{{ good.sku.image.url }}"></li>
+									<li class="col02">{{ good.sku.name }}<em>{{ good.price }}元/{{ good.sku.unite }}</em></li>
+									<li class="col03">{{ good.count }}</li>
+									<li class="col04">{{ good.sum }}元</li>
 								</ul>
-								<ul class="order_goods_list clearfix">					
-									<li class="col01"><img src="{% static 'images/goods02.jpg' %}"></li>
-									<li class="col02">嘎啦苹果嘎啦苹果<em>11.80元/500g</em></li>	
-									<li class="col03">1</li>
-									<li class="col04">11.80元</li>	
-								</ul>
+								{% endfor %}
 							</td>
-							<td width="15%">33.60元</td>
-							<td width="15%">待付款</td>
+							<td width="15%">{{ order.total_price }}元</td>
+							<td width="15%">{{ order.status_name }}</td>
 							<td width="15%"><a href="#" class="oper_btn">去付款</a></td>
 						</tr>
 					</tbody>
 				</table>
-				
-				<ul class="order_list_th w978 clearfix">
-					<li class="col01">2016-8-21 17:36:24</li>
-					<li class="col02">订单号：56872934</li>
-					<li class="col02 stress">已支付</li>			
-				</ul>
-				<table class="order_list_table w980">
-					<tbody>
-						<tr>
-							<td width="55%">
-								<ul class="order_goods_list clearfix">					
-									<li class="col01"><img src="{% static 'images/goods02.jpg' %}"></li>
-									<li class="col02">嘎啦苹果嘎啦苹果<em>11.80元/500g</em></li>	
-									<li class="col03">1</li>
-									<li class="col04">11.80元</li>	
-								</ul>
-								<ul class="order_goods_list clearfix">					
-									<li class="col01"><img src="{% static 'images/goods02.jpg' %}"></li>
-									<li class="col02">嘎啦苹果嘎啦苹果<em>11.80元/500g</em></li>	
-									<li class="col03">1</li>
-									<li class="col04">11.80元</li>	
-								</ul>
-							</td>
-							<td width="15%">33.60元</td>
-							<td width="15%">已付款</td>
-							<td width="15%"><a href="#" class="oper_btn">查看物流</a></td>
-						</tr>
-					</tbody>
-				</table>
+			{% empty %}
+			<h3>暂无订单</h3>
+			{% endfor %}
 
 				<div class="pagenation">
-					<a href="#"><上一页</a>
-					<a href="#" class="active">1</a>
-					<a href="#">2</a>
-					<a href="#">3</a>
-					<a href="#">4</a>
-					<a href="#">5</a>
-					<a href="#">下一页></a>
+					{% if page.has_previous %}
+					<a href="{% url 'users:user_center_order' page.previous_page_number %}"><上一页</a>
+					{% else %}
+					<a href="javascript:void(0)"><上一页</a>
+					{% endif %}
+					{% for page_index in page.paginator.page_range %}
+					{% if page.number == page_index %}
+					<a href="{% url 'users:user_center_order' page_index %}" class="active">{{ page_index }}</a>
+					{% else %}
+					<a href="{% url 'users:user_center_order' page_index %}">{{ page_index }}</a>
+					{% endif %}
+					{% endfor %}
+					{% if page.has_next %}
+					<a href="{% url 'users:user_center_order' page.next_page_number %}">下一页></a>
+					{% else %}
+					<a href="javascript" >下一页</a>
+					{% endif %}
 				</div>
 		</div>
 {% endblock right_content %}
