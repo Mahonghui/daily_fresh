@@ -1,8 +1,8 @@
 # encoding: utf-8
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from .models import User, Address
-from goods.models import GoodsSKU
+
+from django.core.paginator import Paginator
 from django.urls import reverse
 from django.http import HttpResponse
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -14,7 +14,10 @@ from hashlib import md5 # 加密密码
 import json # 解决cookie中文乱码问题
 import re
 
-from django.contrib.auth.decorators import login_required
+from .models import User, Address
+from goods.models import GoodsSKU
+from orders.models import OrderInfo, OrderGoods
+
 # Create your views here.
 
 
@@ -127,9 +130,8 @@ class RegisterView(View):
         # 加密用户身份信息
         serializer = Serializer(settings.SECRET_KEY, 3600) # 使用django提供的token， 1小时过期
         info = {'confirm': user.id}
-        token = serializer.dumps(info) # 返回byte流
-
-        token = token.decode() # 解码为str
+        
+        token = serializer.dumps(info).decode() 
 
         # celery发送邮件
         send_active_email.delay(email, username, token)
@@ -243,9 +245,44 @@ class UserInfoView(View):
         context = {'page': 'user', 'current_user': current_user, 'address': address, 'good_history': goods_list}
         return render(request, 'user_center_info.html', context)
 
+
 class UserOrderView(View):
-    def get(self, request):
-        return render(request, 'user_center_order.html', {'page': 'order'})
+    def get(self, request, page_num):
+        user = request.session.get('user')
+
+        orders = OrderInfo.objects.filter(user=user)
+
+        for order in orders:
+            goods = OrderGoods.objects.filter(order=order).order_by('-create_time')
+
+            for good in goods:
+                good.sum = good.count * good.price
+
+            order.goods = goods
+            order.status_name = OrderInfo.ORDER_STATUS_MAP[order.order_status]
+
+        paginator = Paginator(orders, 1)
+
+        # 页码非数值
+        try:
+            page_num = int(page_num)
+        except ValueError:
+            page_num = 1
+
+        # 超出总页数
+        if page_num > paginator.num_pages:
+            page_num = 1
+
+        page = paginator.page(page_num)
+
+        context = {
+            'orders': orders,
+            'page': page,
+            'page_num': page_num,
+            'page_name': 'order'
+        }
+
+        return render(request, 'user_center_order.html', context)
 
 
 class UserSiteView(View):
@@ -274,5 +311,8 @@ class UserSiteView(View):
 
         address.save()
         return render(request, 'user_center_site.html')
+
+
+
 
 
