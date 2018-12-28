@@ -21,6 +21,14 @@ class OrderInfo(BaseModel):
         (4, '已完成')
     )
 
+    ORDER_STATUS_MAP = {
+        0: '待付款',
+        1: '待发货',
+        2: '待收货',
+        3: '待评价',
+        4: '已完成',
+    }
+
     # 指定主键，默认主键不生成
     order_id = models.CharField(max_length=128, primary_key=True, verbose_name='订单ID')
 

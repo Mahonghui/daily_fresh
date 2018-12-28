@@ -72,13 +72,12 @@ class DetailView(View):
             cart_key = 'cart_%d'%user.id
             cart_count = conn.hlen(cart_key)
 
-        # 添加历史浏览记录
-        conn = get_redis_connection('default')
-        history_key = 'history_%d'%user.id
-        conn.lrem(history_key, 0, goods_id)
-        conn.lpush(history_key, goods_id)
-        # 只保存5条最新记录
-        conn.ltrim(history_key, 0, 4)
+            # 添加历史浏览记录
+            history_key = 'history_%d'%user.id
+            conn.lrem(history_key, 0, goods_id)
+            conn.lpush(history_key, goods_id)
+            # 只保存5条最新记录
+            conn.ltrim(history_key, 0, 4)
 
         context = {
             'sku': sku,
@@ -107,8 +106,8 @@ class ListView(View):
         if sort_way == 'default':
             sort = 'id'
         elif sort_way == 'price':
-            sort = '-price'
-        elif sort_way == 'sales':
+            sort = 'price'
+        elif sort_way == 'hot':
             sort = 'sales'
 
         types = GoodsType.objects.all()
@@ -146,7 +145,7 @@ class ListView(View):
             'page': page,
             'new_skus': new_skus,
             'cart_count': cart_count,
-            'sort': sort
+            'sort': sort_way
         }
 
         return render(request, 'list.html', context)

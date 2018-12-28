@@ -8,7 +8,7 @@ urlpatterns = [
     url(r'^active/(?P<token>.*)$', ActiveView.as_view(), name='active'),
     url(r'^login$', LoginView.as_view(), name='login'),
     url(r'^user_center_info$', login_required(UserInfoView.as_view()), name='user_center_info'),
-    url(r'^user_center_order$', login_required(UserOrderView.as_view()), name='user_center_order'),
+    url(r'^user_center_order/(?P<page_num>\d+)$', login_required(UserOrderView.as_view()), name='user_center_order'),
     url(r'^user_center_site$', login_required(UserSiteView.as_view()), name='user_center_site'),
     url(r'^logout$', LogOutView.as_view(), name='logout')
 ]

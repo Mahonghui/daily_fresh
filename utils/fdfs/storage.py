@@ -2,6 +2,7 @@ from django.core.files.storage import Storage
 from fdfs_client.client import Fdfs_client, get_tracker_conf
 from django.conf import settings
 
+
 class FDFSStorage(Storage):
     '''自定义文件存储类'''
 
@@ -45,7 +46,8 @@ class FDFSStorage(Storage):
             raise Exception('上传失败')
         else:
             file_id = ret.get('Remote file_id')
-        return file_id
+            # debug：file_id 是字节型数据，需要转换成str
+        return file_id.decode()
 
     def exists(self, name):
         '''判断文件名是否可用, 相对django系统而言，与fastdfs无关'''

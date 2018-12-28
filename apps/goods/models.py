@@ -1,13 +1,15 @@
+# -*- coding: utf-8 -*-
 from django.db import models
 from db.base_model import BaseModel
 from tinymce.models import HTMLField
 
 # Create your models here.
 
+
 class GoodsType(BaseModel):
     '''商品类型表'''
 
-    name = models.CharField(max_length=20, verbose_name='类型名称')
+    name = models.CharField(max_length=20, verbose_name='类型名称', null=False)
     logo = models.CharField(max_length=20, verbose_name='类型标识')
     image = models.ImageField(upload_to='type', verbose_name='商品类型图片')
 
@@ -60,6 +62,9 @@ class Goods(BaseModel):
         verbose_name = '商品SPU'
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.name
+
 
 class GoodsImage(BaseModel):
     '''商品图片表'''
@@ -72,6 +77,10 @@ class GoodsImage(BaseModel):
         db_table = 'Goods_image'
         verbose_name = '商品图片'
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return str(self.image)
+
 
 class IndexGoodsBanner(BaseModel):
     '''首页轮播商品表'''
@@ -86,11 +95,14 @@ class IndexGoodsBanner(BaseModel):
         verbose_name = '首页轮播图片'
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.sku.name
+
 class IndexPromotionBanner(BaseModel):
     '''首页促销活动表'''
 
     name = models.CharField(max_length=20, verbose_name='活动名称')
-    url = models.URLField(verbose_name='活动链接')
+    url = models.CharField(max_length=256, verbose_name='活动链接')
     image = models.ImageField(upload_to='banner', verbose_name='促销活动图片')
     index = models.SmallIntegerField(default=0, verbose_name='显示顺序')
 
@@ -99,6 +111,8 @@ class IndexPromotionBanner(BaseModel):
         verbose_name = '首页促销'
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.name
 
 class IndexTypeDisplay(BaseModel):
     '''首页分类展示表'''
@@ -118,4 +132,7 @@ class IndexTypeDisplay(BaseModel):
         db_table = 'Index_goods_type'
         verbose_name = '首页分类展示商品'
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.sku.name
 

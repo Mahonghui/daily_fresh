@@ -1,36 +1,41 @@
 {% extends 'user_center_base.html' %}
 
 {% block right_content %}
+{% load filters %}
 		<div class="right_content clearfix">
 				<h3 class="common_title2">收货地址</h3>
 				<div class="site_con">
 					<dl>
 						<dt>当前地址：</dt>
-						<dd>北京市 海淀区 东北旺西路8号中关村软件园 （李思 收） 182****7528</dd>
+						{% for addr in addr_set %}
+						<dd>{{ addr.address }}&nbsp;&nbsp;&nbsp;({{ addr.receiver }} 收) {{ addr.contact|phone_filter }}</dd>
+						{% endfor %}
 					</dl>					
 				</div>
 				<h3 class="common_title2">编辑地址</h3>
 				<div class="site_con">
-					<form>
+					<form method="post" action="">
+						{% csrf_token %}
 						<div class="form_group">
 							<label>收件人：</label>
-							<input type="text" name="">
+							<input type="text" name="receiver">
 						</div>
 						<div class="form_group form_group2">
 							<label>详细地址：</label>
-							<textarea class="site_area"></textarea>
+							<textarea class="site_area" name = "address"></textarea>
 						</div>
 						<div class="form_group">
 							<label>邮编：</label>
-							<input type="text" name="">
+							<input type="text" name="zip_code">
 						</div>
 						<div class="form_group">
 							<label>手机：</label>
-							<input type="text" name="">
+							<input type="text" name="contact">
 						</div>
 
 						<input type="submit" name="" value="提交" class="info_submit">
 					</form>
 				</div>
 		</div>
+		{{ errmsg }}
 {% endblock right_content %}

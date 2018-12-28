@@ -1,4 +1,5 @@
 {% extends 'detail_list_base.html' %}
+{% load staticfiles %}
 {% block title %}天天生鲜-商品详情{% endblock title %}
 
 {% block main_content %}
@@ -6,7 +7,7 @@
 	<div class="breadcrumb">
 		<a href="#">全部分类</a>
 		<span>></span>
-		<a href="#">{{ sku.type.name }}</a>
+		<a href="{% url 'goods:list' sku.type.id 1 %}">{{ sku.type.name }}</a>
 		<span>></span>
 		<a href="#">商品详情</a>
 	</div>
@@ -18,15 +19,16 @@
 			<h3>{{ sku.name }}</h3>
 			<p>{{ sku.desc }}</p>
 			<div class="prize_bar">
-				<span class="show_pirze">¥<em>{{ sku.price }}</em></span>
+				<span class="show_price">¥<em>{{ sku.price }}</em></span>
 				<span class="show_unit">单  位：{{ sku.unite }}</span>
 			</div>
 			<div class="goods_num clearfix">
 				<div class="num_name fl">数 量：</div>
 				<div class="num_add fl">
-					<input type="text" class="num_show fl" value="1">
-					<a href="javascript:;" class="add fr">+</a>
-					<a href="javascript:;" class="minus fr">-</a>	
+					{% csrf_token %}
+					<input type="text" class="num_show fl" value="1" onblur="vali_amount(this)">
+					<a href="javascript:void()" class="add fr" onclick="change_amount(this)">+</a>
+					<a href="javascript:void()" class="minus fr" onclick="change_amount(this)">-</a>
 				</div> 
 			</div>
 			<div>
@@ -39,10 +41,10 @@
 					{% endfor %}
 				</ul>
 			</div>
-			<div class="total">总价：<em>16.80元</em></div>
+			<div class="total">总价：<em></em></div>
 			<div class="operate_btn">
 				<a href="javascript:;" class="buy_btn">立即购买</a>
-				<a href="javascript:;" class="add_cart" id="add_cart">加入购物车</a>				
+				<a href="javascript:;" sku_id = {{ sku.id }} class="add_cart" id="add_cart">加入购物车</a>
 			</div>
 		</div>
 	</div>
@@ -94,25 +96,6 @@
 {% endblock bottom %}
 
 {% block footer_files %}
-	<script type="text/javascript" src="js/jquery-1.12.2.js"></script>
-	<script type="text/javascript">
-		var $add_x = $('#add_cart').offset().top;
-		var $add_y = $('#add_cart').offset().left;
-
-		var $to_x = $('#show_count').offset().top;
-		var $to_y = $('#show_count').offset().left;
-
-		$(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
-		$('#add_cart').click(function(){
-			$(".add_jump").stop().animate({
-				'left': $to_y+7,
-				'top': $to_x+7},
-				"fast", function() {
-					$(".add_jump").fadeOut('fast',function(){
-						$('#show_count').html(2);
-					});
-
-			});
-		})
-	</script>
+	<script type="text/javascript" src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/goods_detail.js' %}"></script>
 {% endblock footer_files %}
