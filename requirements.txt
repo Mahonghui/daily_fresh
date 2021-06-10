@@ -22,7 +22,7 @@ cryptography==2.3
 cssselect==1.0.3
 cycler==0.10.0
 decorator==4.3.0
-Django==2.1.2
+Django==2.2.24
 django-redis==4.9.0
 django-tinymce==2.7.0
 docutils==0.14
