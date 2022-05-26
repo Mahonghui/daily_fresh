@@ -120,7 +120,7 @@ testpath==0.3.1
 tornado==5.1
 tqdm==4.26.0
 traitlets==4.3.2
-Twisted==18.7.0
+Twisted==22.4.0
 Unidecode==1.0.22
 urllib3==1.24.1
 vine==1.1.4
