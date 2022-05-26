@@ -114,7 +114,7 @@ simplegeneric==0.8.1
 six==1.11.0
 sklearn==0.0
 smart-open==1.7.1
-tensorflow==0.8.0
+tensorflow==2.7.2
 terminado==0.8.1
 testpath==0.3.1
 tornado==5.1
